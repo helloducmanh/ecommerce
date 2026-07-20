@@ -2,6 +2,7 @@ package com.shopnow.presentation.admin;
 
 import com.shopnow.application.catalog.ProductService;
 import com.shopnow.infrastructure.config.SecurityConfig;
+import com.shopnow.infrastructure.security.TestSecurityConfig;
 import com.shopnow.presentation.dto.ProductDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AdminProductController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, TestSecurityConfig.class})
 class AdminProductControllerTest {
 
     @Autowired

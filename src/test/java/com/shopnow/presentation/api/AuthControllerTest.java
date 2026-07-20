@@ -5,6 +5,7 @@ import com.shopnow.application.auth.AuthService;
 import com.shopnow.domain.model.EmailAlreadyExistsException;
 import com.shopnow.domain.model.InvalidCredentialsException;
 import com.shopnow.infrastructure.config.SecurityConfig;
+import com.shopnow.infrastructure.security.TestSecurityConfig;
 import com.shopnow.presentation.dto.AuthResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(AuthController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, TestSecurityConfig.class})
 class AuthControllerTest {
 
     @Autowired

@@ -3,6 +3,7 @@ package com.shopnow.presentation.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.shopnow.application.catalog.ProductService;
 import com.shopnow.infrastructure.config.SecurityConfig;
+import com.shopnow.infrastructure.security.TestSecurityConfig;
 import com.shopnow.presentation.dto.ProductDto;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, TestSecurityConfig.class})
 class ProductControllerTest {
 
     @Autowired
