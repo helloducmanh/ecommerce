@@ -33,3 +33,10 @@ logging:
   level:
     com.shopnow: DEBUG
     org.hibernate.SQL: DEBUG
+
+app:
+  security:
+    jwt:
+      secret: ${JWT_SECRET:dev-only-secret-change-me-in-production-32-bytes-min}
+      access-token-expiration: 900
+      refresh-token-expiration: 604800
