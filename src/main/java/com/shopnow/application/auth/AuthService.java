@@ -75,10 +75,9 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid refresh token");
         }
         String jti = jwt.getClaim("jti");
-        if (!refreshTokenStore.exists(jti)) {
+        if (!refreshTokenStore.consume(jti)) {
             throw new InvalidCredentialsException("Refresh token revoked");
         }
-        refreshTokenStore.revoke(jti);
         Long userId = Long.valueOf(jwt.getSubject());
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new InvalidCredentialsException("User not found"));

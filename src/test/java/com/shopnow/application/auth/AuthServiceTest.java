@@ -122,12 +122,12 @@ class AuthServiceTest {
         AuthResponse first = jwtLogin(user);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(refreshTokenStore.exists(any(String.class))).thenReturn(true);
+        when(refreshTokenStore.consume(any(String.class))).thenReturn(true);
 
         AuthResponse rotated = authService.refresh(new RefreshRequest(first.refreshToken()));
 
         assertNotEquals(first.refreshToken(), rotated.refreshToken());
-        verify(refreshTokenStore).revoke(any(String.class)); // old jti revoked
+        verify(refreshTokenStore).consume(any(String.class)); // old jti atomically consumed
         verify(refreshTokenStore, times(2)).store(any(String.class), eq(1L), any(Duration.class));
     }
 
@@ -136,10 +136,12 @@ class AuthServiceTest {
         User user = persistedUser();
         AuthResponse tokens = jwtLogin(user);
 
-        when(refreshTokenStore.exists(any(String.class))).thenReturn(false);
+        when(refreshTokenStore.consume(any(String.class))).thenReturn(false);
 
         assertThrows(InvalidCredentialsException.class, () ->
                 authService.refresh(new RefreshRequest(tokens.refreshToken())));
+        // No new token was stored by refresh — only the one from jwtLogin() setup.
+        verify(refreshTokenStore, times(1)).store(any(String.class), any(Long.class), any(Duration.class));
     }
 
     @Test

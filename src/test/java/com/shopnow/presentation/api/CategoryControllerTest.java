@@ -66,4 +66,34 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$[0].name").value("Electronics"))
                 .andExpect(jsonPath("$[1].name").value("Books"));
     }
+
+    @Test
+    void shouldRejectCreateCategoryWithoutAdminRole() throws Exception {
+        CreateCategoryRequest request = new CreateCategoryRequest("Electronics", "electronics", null);
+
+        // Anonymous -> 401 (HttpStatusEntryPoint UNAUTHORIZED).
+        mockMvc.perform(post("/api/v1/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void shouldRejectCreateCategoryForCustomer() throws Exception {
+        CreateCategoryRequest request = new CreateCategoryRequest("Electronics", "electronics", null);
+
+        // Authenticated CUSTOMER -> 403 (method security @PreAuthorize hasRole('ADMIN')).
+        mockMvc.perform(post("/api/v1/categories")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "CUSTOMER")
+    void shouldRejectDeleteCategoryForCustomer() throws Exception {
+        mockMvc.perform(delete("/api/v1/categories/1"))
+                .andExpect(status().isForbidden());
+    }
 }

@@ -34,6 +34,9 @@ public class JwtService {
         if ("dev-only-secret-change-me-in-production-32-bytes-min".equals(properties.secret())) {
             log.warn("JWT secret is the default dev value — set the JWT_SECRET environment variable in production.");
         }
+        if (properties.secret().getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalStateException("JWT secret must be at least 256 bits (32 bytes)");
+        }
         SecretKey key = secretKey(properties.secret());
         OctetSequenceKey jwk = new OctetSequenceKey.Builder(key)
                 .keyID("shopnow-hmac")

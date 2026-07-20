@@ -6,6 +6,7 @@ import com.shopnow.presentation.dto.CreateCategoryRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class CategoryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDto> createCategory(@Valid @RequestBody CreateCategoryRequest request) {
         CategoryDto created = categoryService.createCategory(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -42,6 +44,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
         return ResponseEntity.noContent().build();
