@@ -311,6 +311,15 @@ public record UserPrincipal(Long userId, String email, String role) {
 - Existing tests use `@WithMockUser` for admin and anonymous for public. After this phase, public endpoints (products/categories GET) stay `permitAll`, so those tests remain valid.
 - Cart/order tests must switch from `userId` param to mocked principal — handled in Task 6.
 - Services keep `userId` parameter (controllers translate `UserPrincipal → userId`). Services stay decoupled from Spring Security (cleaner, testable, follows existing layered pattern). This matches the spec's dependency rule.
+- **Access tokens are non-revocable for their full 15-minute lifetime.** On logout only the refresh token's `jti` is deleted from Redis; the access token's `jti` is generated but intentionally not stored or checked — the filter validates signature + expiry + `type=="access"` only. A stolen access token therefore remains valid for up to 15 minutes after logout/password change. This is the standard stateless-JWT tradeoff; the short 15-min lifetime is the mitigation. If immediate access-token revocation is later required, store `access:{jti}` in Redis and check it in the filter (costs one Redis call per request).
+
+## 8. Deferred / Known Follow-ups
+
+These surfaced during review of the shipped feature and are tracked here, not blocking the merge:
+
+- **M2 — No issuer (`iss`) validation on decode.** `JwtService` sets `iss="shopnow"` on encode but the decode validator only checks `exp`. Low impact (signature already binds claims to this server's key) but cheap defense-in-depth: replace the custom validator with `JwtValidators.createDefaultWithIssuer("shopnow")`.
+- **M3 — `shouldRejectCustomerRoleForAdminEndpoint` test is slice-fragile.** The `@WebMvcTest(OrderController.class)` loads no handler at `/api/v1/admin/products`, so the 403 assertion relies on the authorization rule firing before 404. Correct today; revisit if filter ordering changes.
+- **M4 — `User.updatedAt` is not touched on role/status change** (no `@PreUpdate`/`@UpdateTimestamp`). The field goes stale after an admin privilege change. Matters for audit; not auth-critical.
 
 ## 8. References
 
