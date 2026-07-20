@@ -66,6 +66,6 @@ class AdminProductControllerTest {
                         "basePrice": 999.00
                     }
                     """))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 }

@@ -1,8 +1,12 @@
+// src/main/java/com/shopnow/presentation/api/OrderController.java
 package com.shopnow.presentation.api;
 
 import com.shopnow.application.order.OrderService;
+import com.shopnow.infrastructure.security.UserPrincipal;
 import com.shopnow.presentation.dto.OrderDto;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,26 +22,24 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderDto> placeOrder(@RequestParam Long userId) {
-        OrderDto order = orderService.placeOrder(userId);
-        return ResponseEntity.status(201).body(order);
+    public ResponseEntity<OrderDto> placeOrder(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.status(201).body(orderService.placeOrder(principal.userId()));
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@orderSecurity.isOwner(#id, authentication)")
     public ResponseEntity<OrderDto> getOrder(@PathVariable Long id) {
-        OrderDto order = orderService.getOrder(id);
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(orderService.getOrder(id));
     }
 
     @GetMapping
-    public ResponseEntity<List<OrderDto>> getUserOrders(@RequestParam Long userId) {
-        List<OrderDto> orders = orderService.getUserOrders(userId);
-        return ResponseEntity.ok(orders);
+    public ResponseEntity<List<OrderDto>> getUserOrders(@AuthenticationPrincipal UserPrincipal principal) {
+        return ResponseEntity.ok(orderService.getUserOrders(principal.userId()));
     }
 
     @PostMapping("/{id}/cancel")
+    @PreAuthorize("@orderSecurity.isOwner(#id, authentication)")
     public ResponseEntity<OrderDto> cancelOrder(@PathVariable Long id) {
-        OrderDto order = orderService.cancelOrder(id);
-        return ResponseEntity.ok(order);
+        return ResponseEntity.ok(orderService.cancelOrder(id));
     }
 }
