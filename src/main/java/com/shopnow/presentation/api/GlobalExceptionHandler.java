@@ -3,6 +3,7 @@ package com.shopnow.presentation.api;
 import com.shopnow.domain.model.EmailAlreadyExistsException;
 import com.shopnow.domain.model.InsufficientStockException;
 import com.shopnow.domain.model.InvalidCredentialsException;
+import com.shopnow.domain.model.OrderStateException;
 import com.shopnow.domain.model.PromotionException;
 import com.shopnow.domain.model.ReviewExistsException;
 import com.shopnow.domain.model.VerifiedPurchaseRequiredException;
@@ -69,6 +70,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InsufficientStockException.class)
     public ResponseEntity<Object> handleInsufficientStock(InsufficientStockException ex) {
         return envelope(HttpStatus.CONFLICT, "INSUFFICIENT_STOCK", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(OrderStateException.class)
+    public ResponseEntity<Object> handleOrderState(OrderStateException ex) {
+        return envelope(HttpStatus.CONFLICT, "INVALID_ORDER_STATE", ex.getMessage(), null);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

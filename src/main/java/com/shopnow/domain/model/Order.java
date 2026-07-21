@@ -49,7 +49,7 @@ public class Order {
 
     public void cancel() {
         if (status != OrderStatus.PENDING) {
-            throw new IllegalStateException("Can only cancel pending orders");
+            throw new OrderStateException("Can only cancel pending orders");
         }
         this.status = OrderStatus.CANCELLED;
     }

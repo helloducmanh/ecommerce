@@ -7,5 +7,6 @@ import java.util.Optional;
 public interface OrderRepository {
     Order save(Order order);
     Optional<Order> findById(Long id);
+    Optional<Order> findByIdForUpdate(Long id);
     List<Order> findByUserId(Long userId);
 }

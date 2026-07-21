@@ -34,6 +34,6 @@ class OrderTest {
     void shouldRejectCancelNonPendingOrder() {
         Order order = new Order(1L, List.of(), BigDecimal.ZERO);
         order.cancel();
-        assertThrows(IllegalStateException.class, () -> order.cancel());
+        assertThrows(OrderStateException.class, () -> order.cancel());
     }
 }

@@ -100,7 +100,7 @@ public class OrderService {
 
     @Transactional
     public OrderDto cancelOrder(Long orderId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdForUpdate(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         order.cancel();
 

@@ -33,9 +33,12 @@ public class PromotionService {
 
     /**
      * Validate a coupon for the given user + cart subtotal and return the discount.
-     * Locks the promotion row (caller's transaction) for a consistent usage_count read.
+     * Locks the promotion row for a consistent usage_count read.
      * Does NOT record the redemption or mutate usage_count — call recordRedemption after the order is saved.
+     * REQUIRED: joins the caller's tx (placeOrder) or opens one when invoked standalone,
+     * so the pessimistic lock on the promotion row is always held within a transaction.
      */
+    @Transactional
     public DiscountResult validateAndApply(String code, Long userId, BigDecimal cartSubtotal) {
         if (code == null || code.isBlank()) {
             return new DiscountResult(BigDecimal.ZERO, null);

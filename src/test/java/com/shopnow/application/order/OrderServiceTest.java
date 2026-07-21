@@ -123,7 +123,7 @@ class OrderServiceTest {
     @Test
     void shouldCancelOrderAndRestoreStock() {
         Order order = new Order(1L, java.util.List.of(), BigDecimal.ZERO);
-        when(orderRepository.findById(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
 
         OrderDto result = orderService.cancelOrder(1L);
@@ -131,6 +131,23 @@ class OrderServiceTest {
         assertEquals("CANCELLED", result.status());
         verify(inventoryService).restoreStock(anyList());
         verify(promotionService).reverseRedemption(1L);
+    }
+
+    @Test
+    void shouldRejectCancelOfAlreadyCancelledOrder() {
+        // Simulates the losing side of a concurrent cancel (C1 fix): the pessimistic lock
+        // serializes the two requests, the second sees status=CANCELLED, and order.cancel()
+        // throws OrderStateException instead of double-restoring stock / reversing redemption.
+        Order order = new Order(1L, java.util.List.of(), BigDecimal.ZERO);
+        when(orderRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(order));
+        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        orderService.cancelOrder(1L); // first cancel succeeds
+
+        assertThrows(com.shopnow.domain.model.OrderStateException.class,
+                () -> orderService.cancelOrder(1L)); // second cancel loses
+        verify(inventoryService, times(1)).restoreStock(anyList());
+        verify(promotionService, times(1)).reverseRedemption(1L);
     }
 
     @Test
