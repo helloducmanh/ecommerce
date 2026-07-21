@@ -22,8 +22,9 @@ public class OrderController {
     }
 
     @PostMapping
-    public ResponseEntity<OrderDto> placeOrder(@AuthenticationPrincipal UserPrincipal principal) {
-        return ResponseEntity.status(201).body(orderService.placeOrder(principal.userId()));
+    public ResponseEntity<OrderDto> placeOrder(@AuthenticationPrincipal UserPrincipal principal,
+                                               @RequestParam(required = false) String couponCode) {
+        return ResponseEntity.status(201).body(orderService.placeOrder(principal.userId(), couponCode));
     }
 
     @GetMapping("/{id}")

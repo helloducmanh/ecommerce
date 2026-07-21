@@ -25,6 +25,8 @@ import static org.mockito.Mockito.*;
 class PromotionServiceTest {
     @Mock
     private PromotionRepository promotionRepository;
+    @Mock
+    private com.shopnow.domain.port.CouponRedemptionRepository couponRedemptionRepository;
     private PromotionService promotionService;
 
     private final LocalDateTime start = LocalDateTime.of(2026, 1, 1, 0, 0);
@@ -32,7 +34,7 @@ class PromotionServiceTest {
 
     @BeforeEach
     void setUp() {
-        promotionService = new PromotionService(promotionRepository);
+        promotionService = new PromotionService(promotionRepository, couponRedemptionRepository);
     }
 
     private CreatePromotionRequest req(Promotion.PromoType type, BigDecimal value) {
@@ -104,5 +106,26 @@ class PromotionServiceTest {
         PromotionException ex = assertThrows(PromotionException.class, () -> promotionService.delete(1L));
         assertEquals(PromotionException.Code.USAGE_EXCEEDED, ex.getCode());
         verify(promotionRepository, never()).deleteById(any());
+    }
+
+    @Test
+    void shouldValidateAndApplyPercentageDiscount() {
+        Promotion promo = new Promotion("SUMMER20", Promotion.PromoType.PERCENTAGE, new BigDecimal("20"),
+                null, null, start, end, Promotion.PromoStatus.ACTIVE);
+        when(promotionRepository.findByCode("SUMMER20")).thenReturn(Optional.of(promo));
+        when(promotionRepository.findByIdForUpdate(any())).thenReturn(Optional.of(promo));
+        when(couponRedemptionRepository.existsByPromotionIdAndUserId(any(), any())).thenReturn(false);
+
+        PromotionService.DiscountResult result = promotionService.validateAndApply("SUMMER20", 1L, new BigDecimal("100.00"));
+
+        assertEquals(new BigDecimal("20.00"), result.discountAmount());
+        assertEquals(promo, result.promotion());
+    }
+
+    @Test
+    void shouldReturnZeroDiscountWhenNoCode() {
+        PromotionService.DiscountResult result = promotionService.validateAndApply(null, 1L, new BigDecimal("100.00"));
+        assertEquals(BigDecimal.ZERO, result.discountAmount());
+        assertNull(result.promotion());
     }
 }

@@ -27,6 +27,11 @@ public class PromotionRepositoryImpl implements PromotionRepository {
     }
 
     @Override
+    public Optional<Promotion> findByIdForUpdate(Long id) {
+        return jpaRepository.findByIdForUpdate(id);
+    }
+
+    @Override
     public Optional<Promotion> findByCode(String code) {
         return jpaRepository.findByCode(code == null ? null : code.toUpperCase());
     }

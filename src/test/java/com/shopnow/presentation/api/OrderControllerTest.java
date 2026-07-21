@@ -23,6 +23,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(OrderController.class)
@@ -61,5 +62,17 @@ class OrderControllerTest {
 
         mockMvc.perform(get("/api/v1/orders/1").with(authentication(principal())))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldPlaceOrderWithCoupon() throws Exception {
+        when(orderService.placeOrder(eq(1L), eq("TEN"))).thenReturn(
+                new OrderDto(2L, 1L, "PENDING", new BigDecimal("90.00"), new BigDecimal("10.00"), List.of()));
+
+        mockMvc.perform(post("/api/v1/orders")
+                        .param("couponCode", "TEN")
+                        .with(authentication(principal())))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.discountAmount").value(10.00));
     }
 }
