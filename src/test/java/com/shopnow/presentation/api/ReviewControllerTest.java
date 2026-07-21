@@ -29,6 +29,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -45,6 +46,9 @@ class ReviewControllerTest {
 
     @MockBean
     private UserRepository userRepository;
+
+    @MockBean(name = "reviewSecurity")
+    private com.shopnow.presentation.security.ReviewSecurity reviewSecurity;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -96,5 +100,13 @@ class ReviewControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new CreateReviewRequest(9, "Great"))))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldDeleteReviewWhenOwner() throws Exception {
+        when(reviewSecurity.isOwner(eq(5L), any())).thenReturn(true);
+
+        mockMvc.perform(delete("/api/v1/reviews/5").with(authentication(principal())))
+                .andExpect(status().isNoContent());
     }
 }
