@@ -1,7 +1,9 @@
 package com.shopnow.presentation.api;
 
 import com.shopnow.domain.model.EmailAlreadyExistsException;
+import com.shopnow.domain.model.InsufficientStockException;
 import com.shopnow.domain.model.InvalidCredentialsException;
+import com.shopnow.domain.model.PromotionException;
 import com.shopnow.domain.model.ReviewExistsException;
 import com.shopnow.domain.model.VerifiedPurchaseRequiredException;
 import com.shopnow.presentation.dto.ErrorResponse;
@@ -52,6 +54,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Object> handleIllegalArgument(IllegalArgumentException ex) {
         return envelope(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(PromotionException.class)
+    public ResponseEntity<Object> handlePromotion(PromotionException ex) {
+        HttpStatus status = switch (ex.getCode()) {
+            case NOT_FOUND -> HttpStatus.NOT_FOUND;
+            case INACTIVE, EXPIRED, USAGE_EXCEEDED, ALREADY_USED -> HttpStatus.CONFLICT;
+            case MIN_NOT_MET, INVALID_VALUE -> HttpStatus.BAD_REQUEST;
+        };
+        return envelope(status, ex.getCode().name(), ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<Object> handleInsufficientStock(InsufficientStockException ex) {
+        return envelope(HttpStatus.CONFLICT, "INSUFFICIENT_STOCK", ex.getMessage(), null);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
