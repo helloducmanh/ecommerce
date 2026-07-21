@@ -2,6 +2,8 @@ package com.shopnow.presentation.api;
 
 import com.shopnow.domain.model.EmailAlreadyExistsException;
 import com.shopnow.domain.model.InvalidCredentialsException;
+import com.shopnow.domain.model.ReviewExistsException;
+import com.shopnow.domain.model.VerifiedPurchaseRequiredException;
 import com.shopnow.presentation.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +28,16 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Object> handleUnauthorized(InvalidCredentialsException ex) {
         return envelope(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(ReviewExistsException.class)
+    public ResponseEntity<Object> handleReviewExists(ReviewExistsException ex) {
+        return envelope(HttpStatus.CONFLICT, "REVIEW_EXISTS", ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(VerifiedPurchaseRequiredException.class)
+    public ResponseEntity<Object> handleVerifiedPurchaseRequired(VerifiedPurchaseRequiredException ex) {
+        return envelope(HttpStatus.FORBIDDEN, "VERIFIED_PURCHASE_REQUIRED", ex.getMessage(), null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
