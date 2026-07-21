@@ -33,6 +33,9 @@ public class Product {
     @Column(precision = 2, scale = 1)
     private BigDecimal avgRating = BigDecimal.ZERO;
 
+    @Column(nullable = false)
+    private Integer reviewCount = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private ProductStatus status = ProductStatus.ACTIVE;
@@ -56,10 +59,15 @@ public class Product {
     public Category getCategory() { return category; }
     public BigDecimal getBasePrice() { return basePrice; }
     public BigDecimal getAvgRating() { return avgRating; }
+    public Integer getReviewCount() { return reviewCount; }
     public ProductStatus getStatus() { return status; }
     public List<ProductVariant> getVariants() { return variants; }
 
     public void setDescription(String description) { this.description = description; }
+
+    public void setReviewCount(Integer reviewCount) { this.reviewCount = reviewCount; }
+
+    public void setAvgRating(java.math.BigDecimal avgRating) { this.avgRating = avgRating; }
 
     @Override
     public boolean equals(Object o) {
