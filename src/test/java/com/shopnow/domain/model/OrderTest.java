@@ -9,7 +9,13 @@ class OrderTest {
 
     @Test
     void shouldCreateOrder() {
-        OrderItem item = new OrderItem(1L, 100L, "iPhone 15", "128GB/Black", 1, new BigDecimal("999.00"));
+        Category category = new Category("Electronics", "electronics");
+        Product product = new Product("iPhone 15", "iphone-15", category, new BigDecimal("999.00"));
+        ProductVariant variant = new ProductVariant(product, "SKU-100", new BigDecimal("999.00"));
+        try {
+            var f = ProductVariant.class.getDeclaredField("id"); f.setAccessible(true); f.set(variant, 100L);
+        } catch (Exception e) { throw new RuntimeException(e); }
+        OrderItem item = new OrderItem(1L, variant, "iPhone 15", "128GB/Black", 1, new BigDecimal("999.00"));
         Order order = new Order(1L, List.of(item), new BigDecimal("999.00"));
 
         assertEquals(1L, order.getUserId());

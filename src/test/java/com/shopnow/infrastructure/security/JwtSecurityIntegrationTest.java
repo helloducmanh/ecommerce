@@ -58,7 +58,7 @@ class JwtSecurityIntegrationTest {
         String token = jwtService.generateTokens(userWithId(1L, UserRole.CUSTOMER)).accessToken();
         when(orderSecurity.isOwner(anyLong(), any())).thenReturn(true);
         when(orderService.getOrder(1L)).thenReturn(
-                new OrderDto(1L, 1L, "PENDING", new BigDecimal("999.00"), List.of()));
+                new OrderDto(1L, 1L, "PENDING", new BigDecimal("999.00"), new BigDecimal("0.00"), List.of()));
 
         mockMvc.perform(get("/api/v1/orders/1").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk());

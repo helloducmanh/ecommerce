@@ -4,6 +4,7 @@ import com.shopnow.domain.model.Category;
 import com.shopnow.domain.model.Order;
 import com.shopnow.domain.model.OrderItem;
 import com.shopnow.domain.model.Product;
+import com.shopnow.domain.model.ProductVariant;
 import com.shopnow.domain.port.OrderQueryPort;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +57,14 @@ class OrderQueryAdapterTest {
         return p.getId();
     }
 
+    private ProductVariant variantFor(Product product, int n) {
+        return em.persistFlushFind(new ProductVariant(product, "SKU-" + n, new BigDecimal("99.00")));
+    }
+
     private void placeOrder(Long userId, Long productId, String productName, Order.OrderStatus status) {
-        OrderItem item = new OrderItem(productId, productId, productName, null, 1, new BigDecimal("99.00"));
+        Product product = em.find(Product.class, productId);
+        ProductVariant variant = variantFor(product, Math.toIntExact(productId));
+        OrderItem item = new OrderItem(productId, variant, productName, null, 1, new BigDecimal("99.00"));
         Order order = new Order(userId, List.of(item), new BigDecimal("99.00"));
         // Force the status past the default PENDING via reflection-free field update is not possible;
         // use the entity's status field through a small helper instead.

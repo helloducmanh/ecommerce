@@ -47,7 +47,7 @@ class OrderControllerTest {
     void shouldGetOrderWhenOwner() throws Exception {
         when(orderSecurity.isOwner(eq(1L), any(Authentication.class))).thenReturn(true);
         when(orderService.getOrder(1L))
-                .thenReturn(new OrderDto(1L, 1L, "PENDING", new BigDecimal("999.00"), List.of()));
+                .thenReturn(new OrderDto(1L, 1L, "PENDING", new BigDecimal("999.00"), new BigDecimal("0.00"), List.of()));
 
         mockMvc.perform(get("/api/v1/orders/1").with(authentication(principal())))
                 .andExpect(status().isOk())

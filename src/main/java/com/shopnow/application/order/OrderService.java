@@ -3,6 +3,7 @@ package com.shopnow.application.order;
 import com.shopnow.domain.model.Cart;
 import com.shopnow.domain.model.Order;
 import com.shopnow.domain.model.OrderItem;
+import com.shopnow.domain.model.ProductVariant;
 import com.shopnow.domain.port.CartRepository;
 import com.shopnow.domain.port.OrderRepository;
 import com.shopnow.presentation.dto.OrderDto;
@@ -33,11 +34,17 @@ public class OrderService {
         }
 
         List<OrderItem> items = cart.getItems().stream()
-            .map(ci -> new OrderItem(
-                ci.getVariantId(), ci.getVariantId(),
-                "Product-" + ci.getVariantId(), ci.getSku(),
-                ci.getQuantity(), ci.getPrice()
-            ))
+            .map(ci -> {
+                ProductVariant v = new ProductVariant(null, ci.getSku(), ci.getPrice());
+                try {
+                    var f = ProductVariant.class.getDeclaredField("id"); f.setAccessible(true); f.set(v, ci.getVariantId());
+                } catch (Exception e) { throw new IllegalStateException(e); }
+                return new OrderItem(
+                    ci.getVariantId(), v,
+                    "Product-" + ci.getVariantId(), ci.getSku(),
+                    ci.getQuantity(), ci.getPrice()
+                );
+            })
             .toList();
 
         Order order = new Order(userId, items, cart.getTotal());
@@ -79,6 +86,6 @@ public class OrderService {
             ))
             .toList();
         return new OrderDto(order.getId(), order.getUserId(),
-            order.getStatus().name(), order.getTotalAmount(), items);
+            order.getStatus().name(), order.getTotalAmount(), order.getDiscountAmount(), items);
     }
 }

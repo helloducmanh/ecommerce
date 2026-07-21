@@ -1,3 +1,4 @@
+// src/main/java/com/shopnow/presentation/dto/OrderDto.java
 package com.shopnow.presentation.dto;
 
 import java.math.BigDecimal;
@@ -8,5 +9,6 @@ public record OrderDto(
     Long userId,
     String status,
     BigDecimal totalAmount,
+    BigDecimal discountAmount,
     List<OrderItemDto> items
 ) {}

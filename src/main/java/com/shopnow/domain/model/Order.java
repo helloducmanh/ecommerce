@@ -36,9 +36,14 @@ public class Order {
     protected Order() {}
 
     public Order(Long userId, List<OrderItem> items, BigDecimal totalAmount) {
+        this(userId, items, totalAmount, BigDecimal.ZERO);
+    }
+
+    public Order(Long userId, List<OrderItem> items, BigDecimal totalAmount, BigDecimal discountAmount) {
         this.userId = userId;
         this.items.addAll(items);
         this.totalAmount = totalAmount;
+        this.discountAmount = discountAmount == null ? BigDecimal.ZERO : discountAmount;
         items.forEach(item -> item.setOrder(this));
     }
 
@@ -54,6 +59,7 @@ public class Order {
     public OrderStatus getStatus() { return status; }
     public BigDecimal getTotalAmount() { return totalAmount; }
     public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; }
     public List<OrderItem> getItems() { return items; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 

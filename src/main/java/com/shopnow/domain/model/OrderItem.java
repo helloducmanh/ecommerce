@@ -1,3 +1,4 @@
+// src/main/java/com/shopnow/domain/model/OrderItem.java
 package com.shopnow.domain.model;
 
 import jakarta.persistence.*;
@@ -15,11 +16,12 @@ public class OrderItem {
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @Column(nullable = false)
+    @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(nullable = false)
-    private Long variantId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "variant_id", nullable = false)
+    private ProductVariant variant;
 
     @Column(nullable = false, length = 255)
     private String productName;
@@ -33,12 +35,13 @@ public class OrderItem {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    protected OrderItem() {}
+    protected OrderItem() {
+    }
 
-    public OrderItem(Long productId, Long variantId, String productName,
+    public OrderItem(Long productId, ProductVariant variant, String productName,
                      String variantName, Integer quantity, BigDecimal unitPrice) {
         this.productId = productId;
-        this.variantId = variantId;
+        this.variant = variant;
         this.productName = productName;
         this.variantName = variantName;
         this.quantity = quantity;
@@ -50,7 +53,8 @@ public class OrderItem {
     public Long getId() { return id; }
     public Order getOrder() { return order; }
     public Long getProductId() { return productId; }
-    public Long getVariantId() { return variantId; }
+    public ProductVariant getVariant() { return variant; }
+    public Long getVariantId() { return variant == null ? null : variant.getId(); }
     public String getProductName() { return productName; }
     public String getVariantName() { return variantName; }
     public Integer getQuantity() { return quantity; }
