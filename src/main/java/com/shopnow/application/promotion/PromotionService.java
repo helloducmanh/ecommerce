@@ -116,6 +116,16 @@ public class PromotionService {
         validate(request);
         Promotion existing = promotionRepository.findById(id)
                 .orElseThrow(() -> new PromotionException(PromotionException.Code.NOT_FOUND, "Promotion not found"));
+
+        boolean redeemed = existing.getUsageCount() != null && existing.getUsageCount() > 0;
+        if (redeemed) {
+            // A redeemed promotion is immutable except for its status — changing code/value/type/window
+            // would corrupt the audit history of orders that already used it.
+            ensureStatusOnlyChange(existing, request);
+            existing.setStatus(request.status() == null ? existing.getStatus() : request.status());
+            return toDto(promotionRepository.save(existing));
+        }
+
         Promotion updated = new Promotion(
                 request.code(), request.type(), request.value(), request.minOrderValue(),
                 request.usageLimit(), request.startsAt(), request.endsAt(), request.status());
@@ -124,6 +134,24 @@ public class PromotionService {
             var usageField = Promotion.class.getDeclaredField("usageCount"); usageField.setAccessible(true); usageField.set(updated, existing.getUsageCount());
         } catch (Exception e) { throw new IllegalStateException(e); }
         return toDto(promotionRepository.save(updated));
+    }
+
+    private void ensureStatusOnlyChange(Promotion existing, CreatePromotionRequest request) {
+        boolean coreChanged = !existing.getCode().equals(request.code())
+                || existing.getType() != request.type()
+                || existing.getValue().compareTo(request.value()) != 0
+                || !nullSafeEquals(existing.getMinOrderValue(), request.minOrderValue())
+                || !nullSafeEquals(existing.getUsageLimit(), request.usageLimit())
+                || !existing.getStartsAt().equals(request.startsAt())
+                || !existing.getEndsAt().equals(request.endsAt());
+        if (coreChanged) {
+            throw new PromotionException(PromotionException.Code.USAGE_EXCEEDED,
+                    "Cannot modify a redeemed promotion's terms; only status may change");
+        }
+    }
+
+    private static boolean nullSafeEquals(Object a, Object b) {
+        return (a == null) ? b == null : a.equals(b);
     }
 
     @Transactional(readOnly = true)

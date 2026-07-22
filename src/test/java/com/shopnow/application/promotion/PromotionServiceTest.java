@@ -128,4 +128,55 @@ class PromotionServiceTest {
         assertEquals(BigDecimal.ZERO, result.discountAmount());
         assertNull(result.promotion());
     }
+
+    @Test
+    void shouldFullyUpdateUnredeemedPromotion() {
+        Promotion existing = new Promotion("OLD", Promotion.PromoType.FIXED, new BigDecimal("5"),
+                null, null, start, end, Promotion.PromoStatus.ACTIVE);
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(promotionRepository.save(any(Promotion.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CreatePromotionRequest change = new CreatePromotionRequest(
+                "NEW", Promotion.PromoType.PERCENTAGE, new BigDecimal("25"),
+                null, 50, start, end, Promotion.PromoStatus.INACTIVE);
+        PromotionDto dto = promotionService.update(1L, change);
+
+        assertEquals("NEW", dto.code());
+        assertEquals("PERCENTAGE", dto.type());
+        assertEquals("INACTIVE", dto.status());
+    }
+
+    @Test
+    void shouldAllowStatusChangeOnRedeemedPromotion() {
+        Promotion existing = new Promotion("X", Promotion.PromoType.FIXED, new BigDecimal("5"),
+                null, null, start, end, Promotion.PromoStatus.ACTIVE);
+        existing.setUsageCount(3);
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(promotionRepository.save(any(Promotion.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CreatePromotionRequest statusOnly = new CreatePromotionRequest(
+                "X", Promotion.PromoType.FIXED, new BigDecimal("5"),
+                null, null, start, end, Promotion.PromoStatus.INACTIVE);
+        PromotionDto dto = promotionService.update(1L, statusOnly);
+
+        assertEquals("INACTIVE", dto.status());
+        assertEquals("X", dto.code());
+        assertEquals(3, dto.usageCount());
+    }
+
+    @Test
+    void shouldRejectNonStatusChangeOnRedeemedPromotion() {
+        Promotion existing = new Promotion("X", Promotion.PromoType.FIXED, new BigDecimal("5"),
+                null, null, start, end, Promotion.PromoStatus.ACTIVE);
+        existing.setUsageCount(3);
+        when(promotionRepository.findById(1L)).thenReturn(Optional.of(existing));
+
+        CreatePromotionRequest changeValue = new CreatePromotionRequest(
+                "X", Promotion.PromoType.FIXED, new BigDecimal("100"),
+                null, null, start, end, Promotion.PromoStatus.ACTIVE);
+        PromotionException ex = assertThrows(PromotionException.class, () -> promotionService.update(1L, changeValue));
+        assertEquals(PromotionException.Code.USAGE_EXCEEDED, ex.getCode());
+        verify(promotionRepository, never()).save(any());
+    }
 }
+
