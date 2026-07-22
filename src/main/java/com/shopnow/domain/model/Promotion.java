@@ -36,6 +36,11 @@ public class Promotion {
     @Column(nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
+    @PreUpdate
+    void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
     protected Promotion() {
     }
 

@@ -57,6 +57,14 @@ public class Inventory {
         this.reserved -= qty;
     }
 
+    /**
+     * Restore a quantity that was previously committed (e.g. when an order is cancelled).
+     * Increases {@code quantity}; {@code reserved} is already 0 for a committed line, so it is untouched.
+     */
+    public void restoreCommitted(Integer qty) {
+        this.quantity += qty;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

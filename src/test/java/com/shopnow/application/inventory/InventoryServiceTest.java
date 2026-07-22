@@ -72,6 +72,16 @@ class InventoryServiceTest {
     }
 
     @Test
+    void shouldThrowDataIntegrityErrorWhenNoInventoryToRestore() {
+        when(inventoryRepository.findByVariantIdForUpdate(99L)).thenReturn(Optional.empty());
+
+        // Restoring stock for an order item with no inventory row is a data-integrity error,
+        // not a customer-facing "insufficient stock" 409 — so it surfaces as IllegalStateException (500).
+        assertThrows(IllegalStateException.class,
+                () -> inventoryService.restoreStock(List.of(new InventoryService.StockRequest(99L, 1))));
+    }
+
+    @Test
     void lowStockDelegatesToRepository() {
         // lowStock mapping is exercised in the controller/repository test; here just verify delegation wiring
         when(inventoryRepository.findLowStock()).thenReturn(List.of());

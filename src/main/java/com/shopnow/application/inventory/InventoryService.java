@@ -62,15 +62,10 @@ public class InventoryService {
                 .toList();
         for (StockRequest item : sorted) {
             Inventory inventory = inventoryRepository.findByVariantIdForUpdate(item.variantId())
-                    .orElseThrow(() -> new InsufficientStockException("No inventory for variant " + item.variantId()));
-            // restore the committed quantity directly
-            try {
-                var qtyField = Inventory.class.getDeclaredField("quantity");
-                qtyField.setAccessible(true);
-                qtyField.set(inventory, inventory.getQuantity() + item.quantity());
-            } catch (Exception e) {
-                throw new IllegalStateException(e);
-            }
+                    .orElseThrow(() -> new IllegalStateException(
+                            "No inventory row for variant " + item.variantId()
+                                    + " during stock restore (data integrity error)"));
+            inventory.restoreCommitted(item.quantity());
             inventoryRepository.save(inventory);
         }
     }
