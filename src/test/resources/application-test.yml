@@ -1,0 +1,19 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  flyway:
+    enabled: false
+
+app:
+  security:
+    jwt:
+      secret: test-secret-at-least-32-bytes-long-padding-padding
+      access-token-expiration: 900
+      refresh-token-expiration: 604800

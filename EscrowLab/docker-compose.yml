@@ -1,0 +1,21 @@
+# Chỉ chạy PostgreSQL. Backend và frontend chạy trực tiếp trên máy để dễ debug.
+services:
+  db:
+    image: postgres:16
+    container_name: escrowlab-db
+    environment:
+      POSTGRES_USER: escrow
+      POSTGRES_PASSWORD: escrow
+      POSTGRES_DB: escrowlab
+    ports:
+      - "5433:5432"          # cổng 5433 trên máy bạn, tránh đụng PostgreSQL cài sẵn
+    volumes:
+      - escrowlab-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U escrow -d escrowlab"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  escrowlab-data:

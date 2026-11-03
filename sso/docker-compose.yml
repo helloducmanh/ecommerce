@@ -1,0 +1,19 @@
+# Keycloak dùng chung cho ReliableOrderPlatform và EscrowLab (chỉ để DEV, dùng chế độ start-dev).
+# Chạy:  docker compose up -d     Quản trị: http://localhost:8180  (admin / admin)
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    container_name: sso-keycloak
+    command: ["start-dev", "--import-realm"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+    ports:
+      - "8180:8080"
+    volumes:
+      # Realm được import 1 lần khi khởi động lần đầu. Sửa file này xong phải xoá volume mới import lại.
+      - ./realm-main.json:/opt/keycloak/data/import/realm-main.json:ro
+      - sso-data:/opt/keycloak/data
+
+volumes:
+  sso-data:

@@ -1,0 +1,80 @@
+### Dùng với VS Code (REST Client) hoặc JetBrains Rider. Backend chạy ở http://localhost:5081
+### Cần chạy Keycloak trước (thư mục sso/). Token lấy bằng username/password của user demo (chỉ dùng cho dev).
+@base = http://localhost:5081/api
+@token_url = http://localhost:8180/realms/main/protocol/openid-connect/token
+@bob = 00000000-0000-0000-0000-000000000003
+
+### Lấy token của Alice
+# @name loginAlice
+POST {{token_url}}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=escrow-lab&username=alice&password=Passw0rd!&scope=openid
+
+###
+@alice_token = {{loginAlice.response.body.access_token}}
+
+### Lấy token của Bob
+# @name loginBob
+POST {{token_url}}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=escrow-lab&username=bob&password=Passw0rd!&scope=openid
+
+###
+@bob_token = {{loginBob.response.body.access_token}}
+
+### Lấy token của Admin
+# @name loginAdmin
+POST {{token_url}}
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=password&client_id=escrow-lab&username=admin&password=Passw0rd!&scope=openid
+
+###
+@admin_token = {{loginAdmin.response.body.access_token}}
+
+### Danh sách người dùng demo
+GET {{base}}/users
+Authorization: Bearer {{alice_token}}
+
+### Alice tạo yêu cầu nạp 500.000đ (lấy providerRef trong kết quả)
+POST {{base}}/deposits
+Content-Type: application/json
+Authorization: Bearer {{alice_token}}
+
+{ "amount": 500000 }
+
+### Giả lập gateway báo thành công, gửi 2 lần để thấy "duplicate"
+POST {{base}}/dev/gateway/simulate
+Content-Type: application/json
+Authorization: Bearer {{alice_token}}
+
+{ "providerRef": "EL0123456789AB", "outcome": "succeeded", "sendTwice": true, "badSignature": false }
+
+### Số dư ví của Alice
+GET {{base}}/me/wallet
+Authorization: Bearer {{alice_token}}
+
+### Alice tạo đơn mua hàng của Bob
+POST {{base}}/orders
+Content-Type: application/json
+Authorization: Bearer {{alice_token}}
+
+{ "sellerId": "{{bob}}", "title": "Bàn phím cơ", "amount": 200000 }
+
+### Các bước tiếp theo (thay ORDER_ID): pay -> ship -> confirm
+POST {{base}}/orders/ORDER_ID/pay
+Authorization: Bearer {{alice_token}}
+
+###
+POST {{base}}/orders/ORDER_ID/ship
+Authorization: Bearer {{bob_token}}
+
+###
+POST {{base}}/orders/ORDER_ID/confirm
+Authorization: Bearer {{alice_token}}
+
+### Sổ cái (admin xem tất cả)
+GET {{base}}/ledger?limit=50
+Authorization: Bearer {{admin_token}}
