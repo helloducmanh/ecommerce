@@ -1,6 +1,6 @@
 # Reliable Order Platform (base project)
 
-Backend **C# / ASP.NET Core 8** (Controller + EF Core + SQLite) và frontend **Vue 3 + Vite**.
+Backend **C# / ASP.NET Core 10** (Controller + EF Core + SQLite) và frontend **Vue 3 + Vite**.
 
 ## Chạy thử
 
